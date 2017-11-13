@@ -5,6 +5,9 @@ import com.sun.xml.internal.bind.v2.TODO;
 import javax.net.ServerSocketFactory;
 import javax.net.ssl.SSLServerSocket;
 import javax.net.ssl.SSLServerSocketFactory;
+import java.io.DataInputStream;
+import java.io.DataOutput;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,25 +17,29 @@ public class ClientConnection extends Thread {
 
     private ServerSocket serverSocket;
     private Socket socket;
+    private DataInputStream inFromClient;
+    private DataOutputStream outFromServer;
     private Server server;
     private int id;
     private String username;
     private Queue<String> outGoingMessage;
 
 
-    public ClientConnection(int id, int port) throws IOException {
+    public ClientConnection(int id, ServerSocket serverSocket) throws IOException {
         this.id=id;
-        ServerSocketFactory socketFactory = SSLServerSocketFactory.getDefault();
-        serverSocket = socketFactory.createServerSocket(port);
+        this.serverSocket = serverSocket;
     }
 
     public void run()
     {
         try {
             socket = serverSocket.accept();
+            inFromClient = new DataInputStream((socket.getInputStream()));
+            outFromServer = new DataOutputStream(socket.getOutputStream());
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         while(!interrupted()){
 
         }
@@ -40,6 +47,9 @@ public class ClientConnection extends Thread {
 
     private void pushMessage(String message){
 
+    }
+    public int getid(){
+        return id;
     }
 
     //TODO addMessageToQueue hat noch keine funktion.
@@ -52,6 +62,6 @@ public class ClientConnection extends Thread {
     }
 
     private boolean addUserToChannel(int channelID){
-        return server.addUserToChannel(id,channelID);
+        return server.addUserToChannel(this,channelID);
     }
 }

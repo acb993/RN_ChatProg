@@ -1,6 +1,8 @@
 package server;
 
 
+import util.Message;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,7 +13,7 @@ public class Channel extends Thread {
     private List<ClientConnection> userList;
     private int channelID;
     private String channelName;
-    private Queue<String> messages;
+    private Queue<Message> messages;
 
 
 
@@ -71,7 +73,7 @@ public class Channel extends Thread {
     }
 
     //TODO mit tasso besprechen ob eine Message Klasse gebaut werden soll.
-    public synchronized boolean addMessageToQueue(String from, String message){
+    public synchronized boolean addMessageToQueue(Message message){
         messages.add(message);
         return true;
     }
