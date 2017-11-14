@@ -49,5 +49,5 @@ public class Writer extends Thread {
         });
     }
 
-    public synchronized void
+
 }

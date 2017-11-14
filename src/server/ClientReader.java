@@ -2,27 +2,29 @@ package server;
 
 import client.Client;
 
-import java.io.DataInputStream;
-import java.io.IOException;
+import java.io.*;
 
 public class ClientReader extends Thread{
     private ClientConnection client;
     private DataInputStream inFromClient;
+    private BufferedReader readerFromClient;
 
 
     public ClientReader(DataInputStream inFromClient, ClientConnection client){
         this.inFromClient = inFromClient;
         this.client = client;
+        readerFromClient= new BufferedReader(new InputStreamReader(inFromClient));
     }
 
     @Override
     public void run() {
         try {
             while(!interrupted()) {
-                if (inFromClient.available() > 0) {
-                    System.out.println("Hab ne nachricht vom client!");
-                    analyzeInput(inFromClient.readLine());
-                }
+//                if (inFromClient.available() > 0) {
+  //                  System.out.println("Hab ne nachricht vom client!");
+    //                analyzeInput(inFromClient.readLine());
+      //          }
+                analyzeInput(readerFromClient.readLine());
             }
         } catch (IOException e) {
             e.printStackTrace();

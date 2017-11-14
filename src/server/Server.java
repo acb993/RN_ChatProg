@@ -48,14 +48,9 @@ public class Server extends Thread {
     }
 
     public void run(){
-        createClientConnection();
-
- //       while(!interrupted()){
-            if(newestCon.hasConnection()){
-                System.out.println("new ClientConnection");
-                createClientConnection();
-            }
- //       }
+        while(!interrupted()){
+            createClientConnection();
+        }
     }
 //  TODO removeUserFromChannel hat noch keine Funktionalitaet und gibt false zurueck
     public synchronized boolean removeUserFromAllChannel(ClientConnection user){

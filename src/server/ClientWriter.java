@@ -10,6 +10,7 @@ import java.util.Queue;
 
 public class ClientWriter extends Thread {
 
+
     private Queue<Message> outGoingMessage;
     private Queue<String> outGoingCommand;
     private DataOutputStream outFromServer;
@@ -23,19 +24,32 @@ public class ClientWriter extends Thread {
     @Override
     public void run() {
         try {
-            while(!interrupted()){
-            if (!outGoingCommand.isEmpty()) {
-                outFromServer.writeBytes(outGoingCommand.poll() + "\r\n");
-            } else if (!outGoingMessage.isEmpty()) {
-                pushMessage(outGoingMessage.poll());
-            }}
+            while (!interrupted()) {
+                try {
+                    waitfornewmessage();
+                } catch (InterruptedException e) {
+                    return;
+                }
+                if (!outGoingCommand.isEmpty()) {
+                    outFromServer.writeBytes(outGoingCommand.poll() + "\r\n");
+                } else if (!outGoingMessage.isEmpty()) {
+                    pushMessage(outGoingMessage.poll());
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    private synchronized void waitfornewmessage() throws InterruptedException {
+        if (outGoingCommand.isEmpty() && outGoingMessage.isEmpty()) {
+            wait();
+        }
+    }
+
     public synchronized boolean addCommandToQueue(String command) {
         outGoingCommand.add(command);
+        notifyAll();
         return true;
     }
 
@@ -44,6 +58,7 @@ public class ClientWriter extends Thread {
             return false;
         } else {
             outGoingMessage.add(message);
+            notifyAll();
             return true;
         }
     }
