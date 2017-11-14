@@ -50,11 +50,11 @@ public class ClientConnection extends Thread {
         return id;
     }
 
-    public synchronized boolean addMessageToQueue(Message message) {
+    public boolean addMessageToQueue(Message message) {
         return writer.addMessageToQueue(message);
     }
 
-    public synchronized boolean addCommandToQueue(String message) {
+    public boolean addCommandToQueue(String message) {
         return writer.addCommandToQueue(message);
     }
 

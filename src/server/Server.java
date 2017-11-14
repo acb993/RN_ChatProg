@@ -16,6 +16,7 @@ public class Server extends Thread {
     private ServerSocket serverSocket;
     private List<Channel> channel;
     private List<ClientConnection> userList;
+    private ClientConnection newestCon;
     private String ipAdresse;
     private String hostname;
     private int listeningPort;
@@ -49,11 +50,12 @@ public class Server extends Thread {
     public void run(){
         createClientConnection();
 
-        while(!interrupted()){
-            if(userList.get(userList.size()-1).hasConnection()){
+ //       while(!interrupted()){
+            if(newestCon.hasConnection()){
+                System.out.println("new ClientConnection");
                 createClientConnection();
             }
-        }
+ //       }
     }
 //  TODO removeUserFromChannel hat noch keine Funktionalitaet und gibt false zurueck
     public synchronized boolean removeUserFromAllChannel(ClientConnection user){
@@ -104,6 +106,7 @@ public class Server extends Thread {
             ClientConnection client =  new ClientConnection(getNewUserId(),serverSocket,this);
             userList.add(client);
             client.start();
+            newestCon = client;
             return client;
         } catch (IOException e) {
             e.printStackTrace();
