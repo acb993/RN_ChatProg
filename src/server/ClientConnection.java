@@ -7,6 +7,7 @@ import util.Message;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -35,6 +36,9 @@ public class ClientConnection extends Thread {
             writer = new ClientWriter(new DataOutputStream(socket.getOutputStream()));
             zustand = 42;
             System.out.println("Verbindung aufgebaut zu: " + socket.getRemoteSocketAddress());
+            reader.start();
+            writer.start();
+            addCommandToQueue(String.format("%d Hello, welcome on Server %s",zustand,InetAddress.getLocalHost()));
         } catch (IOException e) {
             e.printStackTrace();
         }
