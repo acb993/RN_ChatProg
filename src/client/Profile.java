@@ -11,4 +11,16 @@ public class Profile {
         this.lastName = lastName;
         this.eMail = eMail;
     }
+
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public String geteMail() {
+        return eMail;
+    }
+
+    public String getLastName() {
+        return lastName;
+    }
 }
