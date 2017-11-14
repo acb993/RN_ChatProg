@@ -18,8 +18,11 @@ public class ClientReader extends Thread{
     @Override
     public void run() {
         try {
-            if(inFromClient.available()>0){
-                analyzeInput(inFromClient.readLine());
+            while(!interrupted()) {
+                if (inFromClient.available() > 0) {
+                    System.out.println("Hab ne nachricht vom client!");
+                    analyzeInput(inFromClient.readLine());
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -38,10 +41,10 @@ public class ClientReader extends Thread{
             input = input.replace("JOIN ","");
             int channelId = Integer.valueOf(input);
             if(client.addUserToChannel(channelId)){
-                client.addCommandToQueue(String.format("OK,USER JOINED CHANNEL %d\r\n", channelId));
+                client.addCommandToQueue(String.format("OK,USER JOINED CHANNEL %d", channelId));
                 zustand=44;
             }else{
-                client.addCommandToQueue(String.format("NO CHANNEL FOUND WITH ID %s\r\n", input));
+                client.addCommandToQueue(String.format("NO CHANNEL FOUND WITH ID %s", input));
             }
         }else if(input.startsWith("CREATE CHANNEL")&&((zustand==43)||(zustand==44))){
 
@@ -50,11 +53,11 @@ public class ClientReader extends Thread{
         }else if(input.startsWith("GET ID")&&(zustand==42)){
             input = input.replace("GET ID ","");
             if(input.contains(" ")){
-                client.addCommandToQueue(String.format("60 USERNAME %s IS NOT ALLOWED\r\n",input));
+                client.addCommandToQueue(String.format("60 USERNAME %s IS NOT ALLOWED",input));
             }else{
                 zustand=43;
                 client.setUsername(input);
-                client.addCommandToQueue(String.format("ID IS %d\r\n", client.getClientId()));
+                client.addCommandToQueue(String.format("ID IS %d", client.getClientId()));
             }
         }else if(input.startsWith("EXIT")){
 

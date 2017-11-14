@@ -23,11 +23,12 @@ public class ClientWriter extends Thread {
     @Override
     public void run() {
         try {
+            while(!interrupted()){
             if (!outGoingCommand.isEmpty()) {
                 outFromServer.writeBytes(outGoingCommand.poll() + "\r\n");
             } else if (!outGoingMessage.isEmpty()) {
                 pushMessage(outGoingMessage.poll());
-            }
+            }}
         } catch (IOException e) {
             e.printStackTrace();
         }
