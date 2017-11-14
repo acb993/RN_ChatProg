@@ -23,8 +23,8 @@ public class Server extends Thread {
 
     public static void main(String[] args){
         try {
-            Server testServer= new Server(8080);
-
+            Server testServer= new Server(80);
+            testServer.run();
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
@@ -50,7 +50,7 @@ public class Server extends Thread {
         createClientConnection();
 
         while(!interrupted()){
-            if(userList.get(-1).hasConnection()){
+            if(userList.get(userList.size()-1).hasConnection()){
                 createClientConnection();
             }
         }
@@ -101,7 +101,8 @@ public class Server extends Thread {
 
     private synchronized ClientConnection createClientConnection(){
         try {
-            ClientConnection client =  new ClientConnection(getNewUserId(),serverSocket);
+            ClientConnection client =  new ClientConnection(getNewUserId(),serverSocket,this);
+            userList.add(client);
             client.start();
             return client;
         } catch (IOException e) {
