@@ -68,7 +68,7 @@ public class Channel extends Thread {
         return channelID;
     }
 
-    private synchronized void sendAllUser(String message){
+    private synchronized void sendAllUser(Message message){
         userList.parallelStream().forEach(user -> user.addMessageToQueue(message));
     }
 
