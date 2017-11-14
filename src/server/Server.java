@@ -1,6 +1,5 @@
 package server;
 
-import client.Client;
 import util.Message;
 
 import javax.net.ServerSocketFactory;
@@ -10,10 +9,10 @@ import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.Comparator;
 import java.util.List;
 
-public class Server {
+public class Server extends Thread {
     private ServerSocket serverSocket;
     private List<Channel> channel;
     private List<ClientConnection> userList;
@@ -23,19 +22,37 @@ public class Server {
 
 
     public static void main(String[] args){
+        try {
+            Server testServer= new Server(8080);
 
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
     }
 
-    public Server() throws UnknownHostException {
+
+
+    public Server(int listeningPort) throws UnknownHostException {
+        this.listeningPort = listeningPort;
         channel= new ArrayList<>();
         userList= new ArrayList<>();
         ipAdresse = InetAddress.getLocalHost().getHostAddress();
         hostname = InetAddress.getLocalHost().getHostName();
-        ServerSocketFactory socketFactory = SSLServerSocketFactory.getDefault();
+        ServerSocketFactory socketFactory = ServerSocketFactory.getDefault();
         try {
-            serverSocket = socketFactory.createServerSocket(listeningPort);
+            serverSocket = socketFactory.createServerSocket(this.listeningPort);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    public void run(){
+        createClientConnection();
+
+        while(!interrupted()){
+            if(userList.get(-1).hasConnection()){
+                createClientConnection();
+            }
         }
     }
 //  TODO removeUserFromChannel hat noch keine Funktionalitaet und gibt false zurueck
@@ -84,7 +101,9 @@ public class Server {
 
     private synchronized ClientConnection createClientConnection(){
         try {
-            return new ClientConnection(getNewUserId(),serverSocket);
+            ClientConnection client =  new ClientConnection(getNewUserId(),serverSocket);
+            client.start();
+            return client;
         } catch (IOException e) {
             e.printStackTrace();
             return null;
@@ -92,10 +111,17 @@ public class Server {
     }
 
     private synchronized int getNewUserId(){
-
-        return userList.parallelStream().max((us1,us2)->Integer.compare(us1.getid(),us2.getid())).get().getid()+1;
+        if(userList.isEmpty()){
+            return 1;
+        }else{
+            return userList.parallelStream().max(Comparator.comparingInt(ClientConnection::getid)).get().getid()+1;
+        }
     }
     private synchronized int getNewChannelId(){
-        return channel.parallelStream().max((ch1, ch2)->Integer.compare(ch1.getChannelID(),ch2.getChannelID())).get().getChannelID()+1;
+        if(channel.isEmpty()){
+            return 1;
+        }else{
+            return channel.parallelStream().max(Comparator.comparingInt(Channel::getChannelID)).get().getChannelID()+1;
+        }
     }
 }

@@ -10,6 +10,7 @@ public class Message {
     private int channelId;
     private List<String> body = new ArrayList<>();
 
+
     public Message(int userId, String username, int channelId){
         this.userId=userId;
         this.username=username;
@@ -21,6 +22,10 @@ public class Message {
     }
 
     public List<String> getBody() {
+
+        if(body.get(body.size()-1)!="EOM\r\n"){
+            body.add("EOM\r\n");
+        }
         return body;
     }
 

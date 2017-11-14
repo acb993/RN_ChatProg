@@ -1,12 +1,11 @@
 package server;
 
-import com.sun.xml.internal.bind.v2.TODO;
 
-import javax.net.ServerSocketFactory;
-import javax.net.ssl.SSLServerSocket;
-import javax.net.ssl.SSLServerSocketFactory;
+
+import util.Message;
+
+
 import java.io.DataInputStream;
-import java.io.DataOutput;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -22,7 +21,7 @@ public class ClientConnection extends Thread {
     private Server server;
     private int id;
     private String username;
-    private Queue<String> outGoingMessage;
+    private Queue<Message> outGoingMessage;
 
 
     public ClientConnection(int id, ServerSocket serverSocket) throws IOException {
@@ -36,25 +35,46 @@ public class ClientConnection extends Thread {
             socket = serverSocket.accept();
             inFromClient = new DataInputStream((socket.getInputStream()));
             outFromServer = new DataOutputStream(socket.getOutputStream());
+            System.out.println("Verbindung aufgebaut zu: "+socket.getRemoteSocketAddress());
+            while(!interrupted()){
+                if(inFromClient.available()<0){
+
+                }else if(!outGoingMessage.isEmpty()){
+                    pushMessage(outGoingMessage.poll());
+                }
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        while(!interrupted()){
-
-        }
     }
 
-    private void pushMessage(String message){
-
+    private void pushMessage(Message message) throws IOException {
+        outFromServer.writeBytes(String.format("MESSAGE FROM %s %s \r\n", message.getUserId(),message.getChannelId()));
+        message.getBody().stream().forEach(line -> {
+            try {
+                outFromServer.writeBytes(line);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        });
     }
     public int getid(){
         return id;
     }
 
     //TODO addMessageToQueue hat noch keine funktion.
-    public synchronized boolean addMessageToQueue(String message){
-        return true;
+    public synchronized boolean addMessageToQueue(Message message){
+        if(outGoingMessage.contains(message)){
+            return false;
+        }else{
+            outGoingMessage.add(message);
+            return true;
+        }
+    }
+
+    private void analyzeInput(String input){
+
     }
 
     public boolean hasConnection(){
