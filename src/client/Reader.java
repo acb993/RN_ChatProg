@@ -16,8 +16,8 @@ public class Reader extends Thread {
     public void run() {
         while (!interrupted()) {
             try {
-                if (input.available() < 0) {
-
+                if (input.available() > 0) {
+                    System.out.println(input.readLine());
                 }
             } catch (IOException e) {
                 e.printStackTrace();

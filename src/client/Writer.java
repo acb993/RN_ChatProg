@@ -49,11 +49,5 @@ public class Writer extends Thread {
         });
     }
 
-    public Queue<Message> getMessageQueue() {
-        return messageQueue;
-    }
-
-    public Queue<String> getProtocolQueue() {
-        return protocolQueue;
-    }
+    public synchronized void
 }

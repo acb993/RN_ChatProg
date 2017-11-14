@@ -29,7 +29,7 @@ public class Client extends Thread {
     }
 
     private void connect() throws IOException {
-        SocketFactory factory = SSLSocketFactory.getDefault();
+        SocketFactory factory = SocketFactory.getDefault();
         socket = factory.createSocket(ip, port);
         reader = new Reader(socket);
         writer = new Writer(socket);
