@@ -18,7 +18,12 @@ public class Message {
     }
 
     public void addLine(String line){
-        body.add(line);
+        if(line.endsWith("\r\n")){
+            body.add(line);
+        }else{
+            body.add(line+"\r\n");
+        }
+
     }
 
     public List<String> getBody() {
