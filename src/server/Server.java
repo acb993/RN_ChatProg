@@ -16,7 +16,6 @@ public class Server extends Thread {
     private ServerSocket serverSocket;
     private List<Channel> channel;
     private List<ClientConnection> userList;
-    private ClientConnection newestCon;
     private String ipAdresse;
     private String hostname;
     private int listeningPort;
@@ -24,7 +23,7 @@ public class Server extends Thread {
 
     public static void main(String[] args){
         try {
-            Server testServer= new Server(80);
+            Server testServer= new Server(8080);
             testServer.run();
         } catch (UnknownHostException e) {
             e.printStackTrace();
@@ -48,11 +47,13 @@ public class Server extends Thread {
     }
 
     public void run(){
-        while(!interrupted()){
-            createClientConnection();
-        }
+       while(!interrupted()){
+           createClientConnection();
+
+       }
     }
-//  TODO removeUserFromChannel hat noch keine Funktionalitaet und gibt false zurueck
+
+
     public synchronized boolean removeUserFromAllChannel(ClientConnection user){
         channel.parallelStream().forEach(channel1 -> channel1.removeUser(user));
         return true;
@@ -60,28 +61,52 @@ public class Server extends Thread {
 
 
     public synchronized boolean addUserToChannel(ClientConnection user, int channelID) {
-        Channel kanal = channel.parallelStream().filter(channel1 -> channel1.getChannelID()==channelID).findFirst().get();
-        return kanal.addUser(user);
+        if (checkIfChannelExists(channelID)) {
+            Channel kanal = channel.parallelStream().filter(channel1 -> channel1.getChannelID() == channelID).findFirst().get();
+            return kanal.addUser(user);
+        }else{
+            return false;
+        }
+
     }
 
     public synchronized boolean removeUserFromChannel(ClientConnection user,int channelID){
+        if(checkIfChannelExists(channelID)){
         Channel kanal = channel.parallelStream().filter(channel1 -> channel1.getChannelID()==channelID).findFirst().get();
-        return kanal.removeUser(user);
+        return kanal.removeUser(user);}
+        else {
+            return false;
+        }
     }
 
     public synchronized int createChannel(String channelName){
         Channel kanal = new Channel(getNewChannelId(),channelName);
         channel.add(kanal);
+        kanal.start();
         return kanal.getChannelID();
     }
 
     public synchronized void closeChannel(int id){
+        if(checkIfChannelExists(id)){
         Channel kanal = channel.parallelStream().filter(channel1 -> channel1.getChannelID()==id).findFirst().get();
-        channel.remove(kanal);
+        channel.remove(kanal);}
     }
 
     public List<Channel> getAllChannel(){
         return new ArrayList<>(channel);
+    }
+
+    public List<ClientConnection> getAllUser(int channelID, int clientID){
+        Channel kanal;
+        if(checkIfChannelExists(channelID)) {
+            kanal = channel.parallelStream().filter(channel1 -> channel1.getChannelID() == channelID).findFirst().get();
+            if(!kanal.hasUser(clientID)){
+                return null;
+            }
+            return kanal.getAllUser();
+        }else{
+            return null;
+        }
     }
 
     public String gethostname(){
@@ -91,36 +116,54 @@ public class Server extends Thread {
     public String getIpAdresse(){
         return ipAdresse;
     }
+
     public boolean sendMessageOverChannel(int channelID, Message message){
-        Channel kanal = channel.parallelStream().filter(channel1 -> channel1.getChannelID()==channelID).findFirst().get();
-        return kanal.addMessageToQueue(message);
+        Channel kanal;
+        if(checkIfChannelExists(channelID)) {
+            kanal = channel.parallelStream().filter(channel1 -> channel1.getChannelID() == channelID).findFirst().get();
+            return kanal.addMessageToQueue(message);
+        }else{
+            return false;
+        }
+
     }
 
-    private synchronized ClientConnection createClientConnection(){
+    private ClientConnection createClientConnection(){
         try {
             ClientConnection client =  new ClientConnection(getNewUserId(),serverSocket,this);
-            userList.add(client);
+            addClient(client);
             client.start();
-            newestCon = client;
             return client;
         } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
     }
+    private synchronized void addClient(ClientConnection client){
+        userList.add(client);
+    }
 
-    private synchronized int getNewUserId(){
+    private int getNewUserId(){
         if(userList.isEmpty()){
             return 1;
         }else{
             return userList.parallelStream().max(Comparator.comparingInt(ClientConnection::getid)).get().getid()+1;
         }
     }
-    private synchronized int getNewChannelId(){
+    private int getNewChannelId(){
         if(channel.isEmpty()){
             return 1;
         }else{
             return channel.parallelStream().max(Comparator.comparingInt(Channel::getChannelID)).get().getChannelID()+1;
         }
+    }
+
+
+    private boolean checkIfChannelExists(int channelId){
+        return channel.parallelStream().anyMatch(channel1 -> (channel1.getChannelID()==channelId));
+    }
+
+    public synchronized void clientHasConnection() {
+        notifyAll();
     }
 }

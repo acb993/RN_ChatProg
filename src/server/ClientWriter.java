@@ -42,7 +42,7 @@ public class ClientWriter extends Thread {
     }
 
     private synchronized void waitfornewmessage() throws InterruptedException {
-        if (outGoingCommand.isEmpty() && outGoingMessage.isEmpty()) {
+       while (outGoingCommand.isEmpty() && outGoingMessage.isEmpty()) {
             wait();
         }
     }

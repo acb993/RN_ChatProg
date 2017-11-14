@@ -28,8 +28,24 @@ public class Channel extends Thread {
     @Override
     public void run()
    {
+        while(!interrupted()){
+            try {
+                waitformessage();
+                sendAllUser(messages.poll());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+                return;
+            }
 
+        }
    }
+
+    private synchronized void waitformessage() throws InterruptedException {
+        while(messages.isEmpty()){
+            wait();
+            System.out.println("aufgewacht!S");
+        }
+    }
 
     public synchronized boolean addUser(ClientConnection user)
     {
@@ -68,13 +84,19 @@ public class Channel extends Thread {
         return channelID;
     }
 
+    public boolean hasUser(int clientID){
+        return userList.parallelStream().anyMatch(clientConnection -> clientConnection.getClientId()==clientID);
+    }
+
     private synchronized void sendAllUser(Message message){
+        System.out.println("Nachricht wird gesendet");
         userList.parallelStream().forEach(user -> user.addMessageToQueue(message));
     }
 
     //TODO mit tasso besprechen ob eine Message Klasse gebaut werden soll.
     public synchronized boolean addMessageToQueue(Message message){
         messages.add(message);
+        notifyAll();
         return true;
     }
 }

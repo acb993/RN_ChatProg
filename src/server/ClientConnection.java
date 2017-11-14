@@ -28,13 +28,15 @@ public class ClientConnection extends Thread {
         this.serverSocket = serverSocket;
         this.server = server;
         socket = serverSocket.accept();
-        reader = new ClientReader(new DataInputStream((socket.getInputStream())), this);
+        reader = new ClientReader(new DataInputStream((socket.getInputStream())), this,server);
         writer = new ClientWriter(new DataOutputStream(socket.getOutputStream()));
+        zustand = 42;
+
     }
 
     public void run() {
         try {
-            zustand = 42;
+
             System.out.println("Verbindung aufgebaut zu: " + socket.getRemoteSocketAddress());
             reader.start();
             writer.start();
