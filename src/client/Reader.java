@@ -24,7 +24,9 @@ public class Reader extends Thread {
     private static final String LEAVE_CHANNEL_ANSWER_PART = " OK LEAVE CHANNEL ";
     private static final String GET_USER_ANSWER_PART = "-";
     private static final String GET_USER_ANSWER_PART_EMPTY = " ";
-    private static final String SEND_MESSAGE_ANSWER_PART = " OK MESSAGE WILL BE SEND ";
+    private static final String SEND_MESSAGE_ANSWER_PART = " OK END MESSAGE WITH EOM ";
+    private static final String EOM_ANSWER_PART = " OK MESSAGE WILL BE SEND ";
+    private static final String NEW_MESSAGE_ANSWER_PART = " NEW MESSAGE ";
 
     public Reader(Socket socket, Client client) throws IOException {
         this.input = new DataInputStream(socket.getInputStream());
@@ -73,14 +75,10 @@ public class Reader extends Thread {
 
         } else if (sMessage.startsWith(GET_CHANNEL_ANSWER_PART)) {
             sMessage = sMessage.replace(GET_CHANNEL_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
-            client.serverMessage(sMessage);
+            client.getChannel(sMessage);
 
         } else if (sMessage.startsWith(GET_CHANNEL_ANSWER_PART_EMPTY)) {
-            client.serverMessage(sMessage);
-
-        } else if (sMessage.startsWith(JOIN_ANSWER_PART)) {
-            sMessage = sMessage.replace(JOIN_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
-            client.joinChannel(sMessage);
+            client.getChannel(sMessage);
 
         } else if (sMessage.startsWith(LEAVE_CHANNEL_ANSWER_PART)) {
             sMessage = sMessage.replace(LEAVE_CHANNEL_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
@@ -94,31 +92,43 @@ public class Reader extends Thread {
     private void inRoom(String sMessage) {
         if (sMessage.startsWith(GET_CHANNEL_ANSWER_PART)) {
             sMessage = sMessage.replace(GET_CHANNEL_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
-            client.serverMessage(sMessage);
+            client.getChannel(sMessage);
 
         } else if (sMessage.startsWith(GET_CHANNEL_ANSWER_PART_EMPTY)) {
-            client.serverMessage(sMessage);
+            client.getChannel(sMessage);
 
         } else if (sMessage.startsWith(JOIN_ANSWER_PART)) {
             sMessage = sMessage.replace(JOIN_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
-            client.joinChannel(sMessage);
+            client.joinChannel(Integer.valueOf(sMessage));
 
         } else if (sMessage.startsWith(LEAVE_CHANNEL_ANSWER_PART)) {
             sMessage = sMessage.replace(LEAVE_CHANNEL_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
             client.removeChannel(Integer.valueOf(sMessage));
 
-        } else {
+        } else if (sMessage.startsWith(GET_USER_ANSWER_PART)) {
+            sMessage = sMessage.replace(GET_USER_ANSWER_PART,EMPTY_STRING_REPLACEMENT);
+            client.getUser(sMessage);
+
+        } else if (sMessage.startsWith(GET_USER_ANSWER_PART_EMPTY)) {
+            client.getUser(sMessage);
+
+        } else if (sMessage.startsWith(CREATE_CHANNEL_ANSWER_PART)) {
+            sMessage = sMessage.replace(CREATE_CHANNEL_ANSWER_PART,EMPTY_STRING_REPLACEMENT);
+            client.createChannel(sMessage);
+
+        } else if (sMessage.startsWith(NEW_MESSAGE_ANSWER_PART)) {
+            sMessage = sMessage.replace(NEW_MESSAGE_ANSWER_PART,EMPTY_STRING_REPLACEMENT);
+            client.addMessageToChannel(sMessage);
+
+        }else {
             client.serverMessage(sMessage);
         }
-
     }
 
     private void messageMode(String sMessage) {
         if (sMessage.startsWith(SEND_MESSAGE_ANSWER_PART)) {
-            sMessage = sMessage.replace(SEND_MESSAGE_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
-
+            client.serverMessage(sMessage);
         }
-
     }
 
     private void errorMode(String sMessage) {

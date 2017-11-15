@@ -5,10 +5,7 @@ import util.Message;
 import javax.net.SocketFactory;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 
 public class Client extends Thread {
 
@@ -19,7 +16,7 @@ public class Client extends Thread {
     private Writer writer;
     private User user;
     private List<Channel> enteredChannel;
-    private HashMap<Integer,String> avaiableChannel;
+    private HashMap<Integer, String> avaiableChannel;
 
     public Client(String ip, int port, User user) {
         this.ip = ip;
@@ -42,13 +39,13 @@ public class Client extends Thread {
     private void connect() throws IOException {
         SocketFactory factory = SocketFactory.getDefault();
         socket = factory.createSocket(ip, port);
-        reader = new Reader(socket,this);
+        reader = new Reader(socket, this);
         writer = new Writer(socket);
         reader.start();
         writer.start();
     }
 
-    private void disconnect() throws IOException {
+    public void disconnect() throws IOException {
         reader.interrupt();
         writer.interrupt();
         socket.close();
@@ -62,27 +59,40 @@ public class Client extends Thread {
         return writer.addCommand(command);
     }
 
-    public Boolean addMessageToChannel() {
+    public Boolean addMessageToChannel(String sMessage) {
         return true;
     }
 
-    public void getChannel(String sMessage) {
-        ArrayList<String> channelParts = new ArrayList<>(Arrays.asList(sMessage.split(" ")));
-        avaiableChannel.put(Integer.valueOf(channelParts.get(1)),channelParts.get(0));
+    public void getUser(String sMessage) {
     }
 
-    public void removeChannel(int channelID) {
-        for (Channel channel: enteredChannel) {
-            if(channel.getChannelID() == channelID) {
-                channel.interrupt();
-                enteredChannel.remove(channel);
+    public synchronized String getChannel(String sMessage) {
+        ArrayList<String> channelParts = new ArrayList<>(Arrays.asList(sMessage.split(" ")));
+        return avaiableChannel.put(Integer.valueOf(channelParts.get(1)), channelParts.get(0));
+    }
+
+    public void createChannel(String sMessage) {
+    }
+
+    public synchronized Boolean joinChannel(int channelID) {
+        for (Map.Entry<Integer, String> entry : avaiableChannel.entrySet()) {
+            if (entry.getKey() == channelID) {
+                return enteredChannel.add(new Channel(channelID, entry.getValue()));
             }
         }
+        return false;
     }
 
-    public void joinChannel(String channelID) {
-        enteredChannel.add(new Channel(channelID,))
+    public synchronized Boolean removeChannel(int channelID) {
+        for (Channel channel : enteredChannel) {
+            if (channel.getChannelID() == channelID) {
+                channel.interrupt();
+                return enteredChannel.remove(channel);
+            }
+        }
+        return false;
     }
+
 
     public void setID(int id) {
         user.setID(id);
