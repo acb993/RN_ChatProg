@@ -31,7 +31,7 @@ public class ClientReader extends Thread {
         }
     }
 
-    private synchronized void readIn(){
+    private synchronized void readIn() {
 
     }
 
@@ -39,7 +39,7 @@ public class ClientReader extends Thread {
         System.out.println("NEW MESSAGE     " + input);
         int zustand = client.getZustand();
         if (input.startsWith("SEND MESSAGE") && (zustand == 44)) {
-            zustand = sendMessageRequest(input,zustand);
+            zustand = sendMessageRequest(input, zustand);
         } else if (input.startsWith("GET CHANNEL") && ((zustand == 43) || (zustand == 44))) {
             zustand = getChannelRequest(input, zustand);
         } else if (input.startsWith("GET USERS") && (zustand == 44)) {
@@ -64,7 +64,7 @@ public class ClientReader extends Thread {
         client.setZustand(zustand);
     }
 
-    private int sendMessageRequest(String input,int zustand) throws IOException {
+    private int sendMessageRequest(String input, int zustand) throws IOException {
         input = input.replace("SEND MESSAGE ", "");
         try {
             Message message = new Message(client.getClientId(), client.getUsername(), Integer.valueOf(input));
@@ -96,7 +96,13 @@ public class ClientReader extends Thread {
         try {
             List<ClientConnection> userList = server.getAllUser(Integer.valueOf(input), client.getClientId());
             if (userList != null) {
-                userList.stream().forEach(clientConnection -> client.addCommandToQueue(String.format("%d %s %d", zustand, clientConnection.getUsername(), clientConnection.getClientId())));
+                ClientConnection user;
+                for (int i = 0; i < userList.size() - 1; i++){
+                    user = userList.get(i);
+                    client.addCommandToQueue(String.format("44-%s %d",user.getUsername(),user.getClientId()));
+                }
+                user = userList.get(userList.size()-1);
+                client.addCommandToQueue(String.format("44 %s %d",user.getUsername(),user.getClientId()));
             }
         } catch (NumberFormatException e) {
             client.addCommandToQueue("60 CHANNEL DOES NOT EXIST OR YOU DON'T HAVE THE PERMISSON");
@@ -125,7 +131,8 @@ public class ClientReader extends Thread {
         if (input.contains(" ")) {
             client.addCommandToQueue("CHANNEL NAME IS NOT ALLOWED");
         } else {
-            int channel = server.createChannel(input);
+            int channel = server.createChannel(input,client);
+            zustand=44;
             client.addCommandToQueue(String.format("%d CHANNEL CREATED %d %s", zustand, channel, input));
         }
         return zustand;
