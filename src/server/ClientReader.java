@@ -25,6 +25,9 @@ public class ClientReader extends Thread {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return;
         }
     }
 
@@ -32,7 +35,7 @@ public class ClientReader extends Thread {
 
     }
 
-    private void analyzeInput(String input) throws IOException {
+    private void analyzeInput(String input) throws IOException, InterruptedException {
         System.out.println("NEW MESSAGE     " + input);
         int zustand = client.getZustand();
         if (input.startsWith("SEND MESSAGE") && (zustand == 44)) {

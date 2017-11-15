@@ -25,11 +25,9 @@ public class ClientWriter extends Thread {
     public void run() {
         try {
             while (!interrupted()) {
-                try {
+
                     waitfornewmessage();
-                } catch (InterruptedException e) {
-                    return;
-                }
+
                 if (!outGoingCommand.isEmpty()) {
                     outFromServer.writeBytes(outGoingCommand.poll() + "\r\n");
                 } else if (!outGoingMessage.isEmpty()) {
@@ -38,7 +36,17 @@ public class ClientWriter extends Thread {
             }
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (InterruptedException e) {
+        System.out.println("ClientWriter ist Interrupted");
+            try {
+                outFromServer.flush();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+            Thread.currentThread().interrupt();
+            return;
         }
+
     }
 
     private synchronized void waitfornewmessage() throws InterruptedException {
