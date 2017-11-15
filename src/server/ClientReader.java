@@ -56,7 +56,7 @@ public class ClientReader extends Thread {
         } else if (input.startsWith("EXIT")) {
             client.exit();
         } else {
-            client.addCommandToQueue("60 COMMAND COULD NOT BE EXECUTED");
+            client.addCommandToQueue("60 COULD NOT FIND COMMAND");
         }
         client.setZustand(zustand);
     }
@@ -76,7 +76,7 @@ public class ClientReader extends Thread {
             server.sendMessageOverChannel(Integer.valueOf(input), message);
         } catch (NumberFormatException e) {
             zustand = 44;
-            client.addCommandToQueue("60 COMMAND COULD NOT BE EXECUTED");
+            client.addCommandToQueue("60 YOU COULD NOT SEND A MESSAGE TO THIS ROOM");
         }
 
         return zustand;
@@ -96,7 +96,7 @@ public class ClientReader extends Thread {
                 userList.stream().forEach(clientConnection -> client.addCommandToQueue(String.format("%d %s %d", zustand, clientConnection.getUsername(), clientConnection.getClientId())));
             }
         } catch (NumberFormatException e) {
-            client.addCommandToQueue("60 COMMAND COULD NOT BE EXECUTED");
+            client.addCommandToQueue("60 CHANNEL DOES NOT EXIST OR YOU DON'T HAVE THE PERMISSON");
         }
         return zustand;
     }
@@ -112,7 +112,7 @@ public class ClientReader extends Thread {
                 client.addCommandToQueue(String.format("%d NO CHANNEL FOUND WITH ID %s", zustand, input));
             }
         } catch (NumberFormatException e) {
-            client.addCommandToQueue("60 COMMAND COULD NOT BE EXECUTED");
+            client.addCommandToQueue("60 COMMAND COULD NOT BE EXECUTED, CHANNEL ID MAY BE INCORRECT");
         }
         return zustand;
     }
