@@ -36,6 +36,7 @@ public class ClientReader extends Thread {
     }
 
     private void analyzeInput(String input) throws IOException, InterruptedException {
+        client.noPushing();
         System.out.println("NEW MESSAGE     " + input);
         int zustand = client.getZustand();
         if (input.startsWith("SEND MESSAGE") && (zustand == 44)) {
@@ -61,6 +62,7 @@ public class ClientReader extends Thread {
         } else {
             client.addCommandToQueue("60 COULD NOT FIND COMMAND");
         }
+        client.pushing();
         client.setZustand(zustand);
     }
 

@@ -99,4 +99,11 @@ public class ClientConnection extends Thread {
     public int getClientId() {
         return id;
     }
+
+    public void noPushing(){
+        writer.noPushing();
+    }
+    public void pushing(){
+        writer.pushing();
+    }
 }

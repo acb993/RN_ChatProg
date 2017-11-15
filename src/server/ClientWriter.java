@@ -10,7 +10,7 @@ import java.util.Queue;
 
 public class ClientWriter extends Thread {
 
-
+    private  boolean noPushing = false;
     private Queue<Message> outGoingMessage;
     private Queue<String> outGoingCommand;
     private DataOutputStream outFromServer;
@@ -30,7 +30,7 @@ public class ClientWriter extends Thread {
 
                 if (!outGoingCommand.isEmpty()) {
                     outFromServer.writeBytes(outGoingCommand.poll() + "\r\n");
-                } else if (!outGoingMessage.isEmpty()) {
+                } else if (!outGoingMessage.isEmpty()&&!noPushing) {
                     pushMessage(outGoingMessage.poll());
                 }
             }
@@ -49,10 +49,20 @@ public class ClientWriter extends Thread {
 
     }
 
+    public synchronized void noPushing(){
+        noPushing=true;
+    }
+     public synchronized void pushing(){
+        noPushing=false;
+        notifyAll();
+     }
+
     private synchronized void waitfornewmessage() throws InterruptedException {
-       while (outGoingCommand.isEmpty() && outGoingMessage.isEmpty()) {
-            wait();
-        }
+
+       while (outGoingCommand.isEmpty() &&(outGoingMessage.isEmpty()||noPushing)) {
+           wait();
+       }
+
     }
 
     public synchronized boolean addCommandToQueue(String command) {
