@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketAddress;
 
 public class ClientConnection extends Thread {
 
@@ -71,6 +72,19 @@ public class ClientConnection extends Thread {
 
     public synchronized void setZustand(int zustand) {
         this.zustand = zustand;
+    }
+    public synchronized void exit(){
+        writer.addCommandToQueue("42 Okay connection will be closed");
+        SocketAddress connection = socket.getRemoteSocketAddress();
+        server.exitUser(this);
+        reader.interrupt();
+        writer.interrupt();
+        try {
+            socket.close();
+        } catch (IOException e) {
+            System.out.println(String.format("Verbindung zu %s wurde abgebaut!",connection));
+        }
+
     }
 
     public int getZustand() {

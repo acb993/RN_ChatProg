@@ -166,4 +166,9 @@ public class Server extends Thread {
     public synchronized void clientHasConnection() {
         notifyAll();
     }
+
+    public synchronized void exitUser(ClientConnection clientConnection) {
+        removeUserFromAllChannel(clientConnection);
+        userList.remove(clientConnection);
+    }
 }

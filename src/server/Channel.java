@@ -33,7 +33,7 @@ public class Channel extends Thread {
                 waitformessage();
                 sendAllUser(messages.poll());
             } catch (InterruptedException e) {
-                e.printStackTrace();
+
                 return;
             }
 

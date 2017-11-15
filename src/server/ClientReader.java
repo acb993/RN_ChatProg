@@ -11,7 +11,7 @@ public class ClientReader extends Thread {
     private Server server;
 
 
-    public ClientReader(DataInputStream inFromClient, ClientConnection client, Server server) {
+    ClientReader(DataInputStream inFromClient, ClientConnection client, Server server) {
         this.client = client;
         this.server = server;
         readerFromClient = new BufferedReader(new InputStreamReader(inFromClient));
@@ -28,13 +28,17 @@ public class ClientReader extends Thread {
         }
     }
 
+    private synchronized void readIn(){
+
+    }
+
     private void analyzeInput(String input) throws IOException {
         System.out.println("NEW MESSAGE     " + input);
         int zustand = client.getZustand();
         if (input.startsWith("SEND MESSAGE") && (zustand == 44)) {
             zustand = sendMessageRequest(input,zustand);
         } else if (input.startsWith("GET CHANNEL") && ((zustand == 43) || (zustand == 44))) {
-            zustand = getChannelRequest(input,zustand);
+            zustand = getChannelRequest(input, zustand);
         } else if (input.startsWith("GET USERS") && (zustand == 44)) {
             zustand = getUsersRequest(input, zustand);
         } else if (input.startsWith("JOIN") && ((zustand == 43) || (zustand == 44))) {
@@ -50,29 +54,28 @@ public class ClientReader extends Thread {
             zustand = getIdRequest(input, zustand);
 
         } else if (input.startsWith("EXIT")) {
-
+            client.exit();
         } else {
             client.addCommandToQueue("60 COMMAND COULD NOT BE EXECUTED");
         }
         client.setZustand(zustand);
     }
 
-    private int sendMessageRequest(String input, int zustand) throws IOException {
-        input = input.replace("SEND MESSAGE ","");
+    private int sendMessageRequest(String input,int zustand) throws IOException {
+        input = input.replace("SEND MESSAGE ", "");
         try {
-            Message message = new Message(client.getClientId(),client.getUsername(),Integer.valueOf(input));
-            zustand=45;
+            Message message = new Message(client.getClientId(), client.getUsername(), Integer.valueOf(input));
             client.addCommandToQueue("45 OK END MESSAGGE WITH EOM");
             String line = readerFromClient.readLine();
-            while(line.compareTo("EOM")!=0){
+            while (line.compareTo("EOM") != 0) {
                 message.addLine(line);
                 line = readerFromClient.readLine();
             }
-            zustand=44;
-            client.addCommandToQueue(String.format("%d OK MESSAGE WILL BE SEND",zustand));
-            server.sendMessageOverChannel(Integer.valueOf(input),message);
-        }catch (NumberFormatException e){
-            zustand=44;
+            zustand = 44;
+            client.addCommandToQueue(String.format("%d OK MESSAGE WILL BE SEND", zustand));
+            server.sendMessageOverChannel(Integer.valueOf(input), message);
+        } catch (NumberFormatException e) {
+            zustand = 44;
             client.addCommandToQueue("60 COMMAND COULD NOT BE EXECUTED");
         }
 
@@ -80,7 +83,7 @@ public class ClientReader extends Thread {
     }
 
     private int getChannelRequest(String input, int zustand) {
-        server.getAllChannel().stream().forEach(channel -> client.addCommandToQueue(String.format("%d %s %d %d ",zustand,channel.getChannelName(),channel.getChannelID(),channel.getUserCount())));
+        server.getAllChannel().stream().forEach(channel -> client.addCommandToQueue(String.format("%d %s %d %d ", zustand, channel.getChannelName(), channel.getChannelID(), channel.getUserCount())));
 
         return zustand;
     }
@@ -88,9 +91,9 @@ public class ClientReader extends Thread {
     private int getUsersRequest(String input, int zustand) {
         input = input.replace("GET USERS ", "");
         try {
-            List<ClientConnection> userList = server.getAllUser(Integer.valueOf(input),client.getClientId());
-            if(userList!=null) {
-                userList.stream().forEach(clientConnection -> client.addCommandToQueue(String.format("%d %s %d",zustand, clientConnection.getUsername(),clientConnection.getClientId())));
+            List<ClientConnection> userList = server.getAllUser(Integer.valueOf(input), client.getClientId());
+            if (userList != null) {
+                userList.stream().forEach(clientConnection -> client.addCommandToQueue(String.format("%d %s %d", zustand, clientConnection.getUsername(), clientConnection.getClientId())));
             }
         } catch (NumberFormatException e) {
             client.addCommandToQueue("60 COMMAND COULD NOT BE EXECUTED");
@@ -104,9 +107,9 @@ public class ClientReader extends Thread {
             int channelId = Integer.valueOf(input);
             if (client.addUserToChannel(channelId)) {
                 zustand = 44;
-                client.addCommandToQueue(String.format("%d OK,USER JOINED CHANNEL %d", zustand,channelId));
+                client.addCommandToQueue(String.format("%d OK,USER JOINED CHANNEL %d", zustand, channelId));
             } else {
-                client.addCommandToQueue(String.format("%d NO CHANNEL FOUND WITH ID %s",zustand, input));
+                client.addCommandToQueue(String.format("%d NO CHANNEL FOUND WITH ID %s", zustand, input));
             }
         } catch (NumberFormatException e) {
             client.addCommandToQueue("60 COMMAND COULD NOT BE EXECUTED");
@@ -120,7 +123,7 @@ public class ClientReader extends Thread {
             client.addCommandToQueue("CHANNEL NAME IS NOT ALLOWED");
         } else {
             int channel = server.createChannel(input);
-            client.addCommandToQueue(String.format("%d CHANNEL CREATED %d %s",zustand, channel, input));
+            client.addCommandToQueue(String.format("%d CHANNEL CREATED %d %s", zustand, channel, input));
         }
         return zustand;
     }
@@ -138,7 +141,7 @@ public class ClientReader extends Thread {
         } else {
             zustand = 43;
             client.setUsername(input);
-            client.addCommandToQueue(String.format("%d ID IS %d",zustand, client.getClientId()));
+            client.addCommandToQueue(String.format("%d ID IS %d", zustand, client.getClientId()));
         }
         return zustand;
     }
