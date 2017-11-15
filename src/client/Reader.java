@@ -71,15 +71,22 @@ public class Reader extends Thread {
             sMessage = sMessage.replace(GET_ID_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
             client.setID(Integer.valueOf(sMessage));
 
-        } else if (sMessage.startsWith(LEAVE_CHANNEL_ANSWER_PART)) {
-            sMessage = sMessage.replace(LEAVE_CHANNEL_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
-            client.removeChannel(Integer.valueOf(sMessage));
-
         } else if (sMessage.startsWith(GET_CHANNEL_ANSWER_PART)) {
             sMessage = sMessage.replace(GET_CHANNEL_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
             client.serverMessage(sMessage);
 
         } else if (sMessage.startsWith(GET_CHANNEL_ANSWER_PART_EMPTY)) {
+            client.serverMessage(sMessage);
+
+        } else if (sMessage.startsWith(JOIN_ANSWER_PART)) {
+            sMessage = sMessage.replace(JOIN_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
+            client.joinChannel(sMessage);
+
+        } else if (sMessage.startsWith(LEAVE_CHANNEL_ANSWER_PART)) {
+            sMessage = sMessage.replace(LEAVE_CHANNEL_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
+            client.removeChannel(Integer.valueOf(sMessage));
+
+        } else {
             client.serverMessage(sMessage);
         }
     }
@@ -93,13 +100,24 @@ public class Reader extends Thread {
             client.serverMessage(sMessage);
 
         } else if (sMessage.startsWith(JOIN_ANSWER_PART)) {
-            sMessage = sMessage.replace(JOIN_ANSWER_PART,EMPTY_STRING_REPLACEMENT);
+            sMessage = sMessage.replace(JOIN_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
             client.joinChannel(sMessage);
+
+        } else if (sMessage.startsWith(LEAVE_CHANNEL_ANSWER_PART)) {
+            sMessage = sMessage.replace(LEAVE_CHANNEL_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
+            client.removeChannel(Integer.valueOf(sMessage));
+
+        } else {
+            client.serverMessage(sMessage);
         }
 
     }
 
     private void messageMode(String sMessage) {
+        if (sMessage.startsWith(SEND_MESSAGE_ANSWER_PART)) {
+            sMessage = sMessage.replace(SEND_MESSAGE_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
+
+        }
 
     }
 

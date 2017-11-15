@@ -19,14 +19,14 @@ public class Client extends Thread {
     private Writer writer;
     private User user;
     private List<Channel> enteredChannel;
-    private List<HashMap<Integer,String>> avaiableChannel;
+    private HashMap<Integer,String> avaiableChannel;
 
     public Client(String ip, int port, User user) {
         this.ip = ip;
         this.port = port;
         this.user = user;
         this.enteredChannel = new ArrayList<>();
-        this.avaiableChannel = new ArrayList<>();
+        this.avaiableChannel = new HashMap<>();
     }
 
     @Override
@@ -68,9 +68,7 @@ public class Client extends Thread {
 
     public void getChannel(String sMessage) {
         ArrayList<String> channelParts = new ArrayList<>(Arrays.asList(sMessage.split(" ")));
-        HashMap<Integer,String> channel = new HashMap<>();
-        channel.put(Integer.valueOf(channelParts.get(1)),channelParts.get(0));
-        avaiableChannel.add(channel);
+        avaiableChannel.put(Integer.valueOf(channelParts.get(1)),channelParts.get(0));
     }
 
     public void removeChannel(int channelID) {
