@@ -24,11 +24,7 @@ public class Writer extends Thread {
     public void run() {
         try {
             while (!interrupted()) {
-                try {
                     waitForOutput();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
                 if (!protocolQueue.isEmpty()) {
                     send(protocolQueue.poll());
                 } else if (!messageQueue.isEmpty()) {
@@ -36,6 +32,8 @@ public class Writer extends Thread {
                 }
             }
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
     }

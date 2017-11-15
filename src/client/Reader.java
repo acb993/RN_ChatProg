@@ -135,5 +135,7 @@ public class Reader extends Thread {
 
     }
 
-
+    public DataInputStream getInput() {
+        return input;
+    }
 }

@@ -29,4 +29,11 @@ public class Channel extends Thread {
     public Queue<Message> getMessageQueue() {
         return messageQueue;
     }
+
+
+    public synchronized boolean addMessageToQueue(Message message){
+        messageQueue.add(message);
+        notifyAll();
+        return true;
+    }
 }
