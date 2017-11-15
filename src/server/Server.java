@@ -1,5 +1,6 @@
 package server;
 
+import client.Client;
 import util.Message;
 
 import javax.net.ServerSocketFactory;
@@ -79,10 +80,11 @@ public class Server extends Thread {
         }
     }
 
-    public synchronized int createChannel(String channelName){
+    public synchronized int createChannel(String channelName, ClientConnection user){
         Channel kanal = new Channel(getNewChannelId(),channelName);
         channel.add(kanal);
         kanal.start();
+        kanal.addUser(user);
         return kanal.getChannelID();
     }
 

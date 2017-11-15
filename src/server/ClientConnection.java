@@ -42,8 +42,13 @@ public class ClientConnection extends Thread {
             reader.start();
             writer.start();
             addCommandToQueue(String.format("%d Hello, welcome on Server %s",zustand,InetAddress.getLocalHost()));
+            reader.join();
+            writer.join();
+            socket.close();
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            exit();
         }
     }
 
@@ -72,18 +77,10 @@ public class ClientConnection extends Thread {
     public synchronized void setZustand(int zustand) {
         this.zustand = zustand;
     }
-    public synchronized void exit(){
+    public synchronized void exit() {
         writer.addCommandToQueue("42 Okay connection will be closed");
-        SocketAddress connection = socket.getRemoteSocketAddress();
-        server.exitUser(this);
-        reader.interrupt();
         writer.interrupt();
-        try {
-            socket.close();
-        } catch (IOException e) {
-            System.out.println(String.format("Verbindung zu %s wurde abgebaut!",connection));
-        }
-
+        reader.interrupt();
     }
 
     public int getZustand() {
@@ -100,5 +97,12 @@ public class ClientConnection extends Thread {
 
     public int getClientId() {
         return id;
+    }
+
+    public void noPushing(){
+        writer.noPushing();
+    }
+    public void pushing(){
+        writer.pushing();
     }
 }
