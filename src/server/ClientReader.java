@@ -31,12 +31,8 @@ public class ClientReader extends Thread {
         }
     }
 
-    private synchronized void readIn() {
-
-    }
-
     private void analyzeInput(String input) throws IOException, InterruptedException {
-        client.noPushing();
+        client.pushing(false);
         System.out.println("NEW MESSAGE     " + input);
         int zustand = client.getZustand();
         if (input.startsWith("SEND MESSAGE") && (zustand == 44)) {
@@ -62,7 +58,7 @@ public class ClientReader extends Thread {
         } else {
             client.addCommandToQueue("60 COULD NOT FIND COMMAND");
         }
-        client.pushing();
+        client.pushing(true);
         client.setZustand(zustand);
     }
 
@@ -116,7 +112,7 @@ public class ClientReader extends Thread {
         input = input.replace("JOIN ", "");
         try {
             int channelId = Integer.valueOf(input);
-            if (client.addUserToChannel(channelId)) {
+            if (server.addUserToChannel(client,channelId)) {
                 zustand = 44;
                 client.addCommandToQueue(String.format("%d OK,USER JOINED CHANNEL %d", zustand, channelId));
             } else {
@@ -133,7 +129,8 @@ public class ClientReader extends Thread {
         if (input.contains(" ")) {
             client.addCommandToQueue("CHANNEL NAME IS NOT ALLOWED");
         } else {
-            int channel = server.createChannel(input,client);
+            int channel = server.createChannel(input);
+            server.addUserToChannel(client,channel);
             zustand=44;
             client.addCommandToQueue(String.format("%d CHANNEL CREATED %d %s", zustand, channel, input));
         }
@@ -143,6 +140,7 @@ public class ClientReader extends Thread {
     private int leaveChannelRequest(String input, int zustand) {
         input = input.replace("LEAVE CHANNEL ", "");
         server.removeUserFromChannel(client, Integer.valueOf(input));
+        zustand = (server.clientIsInAnyChannel(client)? 44 : 43);
         return zustand;
     }
 
