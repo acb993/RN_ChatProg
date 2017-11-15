@@ -6,6 +6,7 @@ import javax.net.SocketFactory;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
@@ -18,7 +19,7 @@ public class Client extends Thread {
     private Writer writer;
     private User user;
     private List<Channel> enteredChannel;
-    private List<List<HashMap<Integer,String>>> avaiableChannel;
+    private List<HashMap<Integer,String>> avaiableChannel;
 
     public Client(String ip, int port, User user) {
         this.ip = ip;
@@ -66,7 +67,10 @@ public class Client extends Thread {
     }
 
     public void getChannel(String sMessage) {
-
+        ArrayList<String> channelParts = new ArrayList<>(Arrays.asList(sMessage.split(" ")));
+        HashMap<Integer,String> channel = new HashMap<>();
+        channel.put(Integer.valueOf(channelParts.get(1)),channelParts.get(0));
+        avaiableChannel.add(channel);
     }
 
     public void removeChannel(int channelID) {
