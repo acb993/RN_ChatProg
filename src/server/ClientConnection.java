@@ -45,7 +45,6 @@ public class ClientConnection extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
 

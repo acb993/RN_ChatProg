@@ -1,5 +1,6 @@
 package client;
 
+
 public class User {
 
     private int id;
@@ -7,21 +8,32 @@ public class User {
     private String username;
     private Client connection;
 
-    public User(String username, String firstName, String lastName, String eMail){
-        this.username = username;
-        this.profile = new Profile(firstName,lastName,eMail);
+
+
+    public User() {
+
     }
 
     public void createConnection(String id, int port) {
-        connection = new Client(id, port);
+        connection = new Client(id, port,this);
         connection.start();
     }
 
-    public void joinChatRoom() {}
+    public void joinChatRoom() {
+        connection.sendCommand("");
+    }
 
     public void leaveChatRoom() {}
 
     public void createChannel() {}
 
     public void closeChannel() {}
+
+    private void getID() {
+        connection.sendCommand("GET ID");
+    }
+
+    public int setID(int id) {
+        return this.id = id;
+    }
 }

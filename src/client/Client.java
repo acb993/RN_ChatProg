@@ -1,9 +1,13 @@
 package client;
 
+import util.Message;
+
 import javax.net.SocketFactory;
-import javax.net.ssl.SSLSocketFactory;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 public class Client extends Thread {
 
@@ -12,10 +16,16 @@ public class Client extends Thread {
     private int port;
     private Reader reader;
     private Writer writer;
+    private User user;
+    private List<Channel> enteredChannel;
+    private List<List<HashMap<Integer,String>>> avaiableChannel;
 
-    public Client(String ip, int port) {
+    public Client(String ip, int port, User user) {
         this.ip = ip;
         this.port = port;
+        this.user = user;
+        this.enteredChannel = new ArrayList<>();
+        this.avaiableChannel = new ArrayList<>();
     }
 
     @Override
@@ -31,7 +41,7 @@ public class Client extends Thread {
     private void connect() throws IOException {
         SocketFactory factory = SocketFactory.getDefault();
         socket = factory.createSocket(ip, port);
-        reader = new Reader(socket);
+        reader = new Reader(socket,this);
         writer = new Writer(socket);
         reader.start();
         writer.start();
@@ -42,4 +52,42 @@ public class Client extends Thread {
         writer.interrupt();
         socket.close();
     }
+
+    public Boolean sendMessage(Message message) {
+        return writer.addMessage(message);
+    }
+
+    public Boolean sendCommand(String command) {
+        return writer.addCommand(command);
+    }
+
+    public Boolean addMessageToChannel() {
+        return true;
+    }
+
+    public void getChannel(String sMessage) {
+
+    }
+
+    public void removeChannel(int channelID) {
+        for (Channel channel: enteredChannel) {
+            if(channel.getChannelID() == channelID) {
+                channel.interrupt();
+                enteredChannel.remove(channel);
+            }
+        }
+    }
+
+    public void joinChannel(String channelID) {
+        enteredChannel.add(new Channel(channelID,))
+    }
+
+    public void setID(int id) {
+        user.setID(id);
+    }
+
+    public void serverMessage(String sMessage) {
+        System.out.println(sMessage);
+    }
+
 }
