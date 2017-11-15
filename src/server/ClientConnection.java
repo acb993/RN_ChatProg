@@ -48,7 +48,6 @@ public class ClientConnection extends Thread {
         } catch (InterruptedException e) {
             exit();
         }
-
     }
 
 

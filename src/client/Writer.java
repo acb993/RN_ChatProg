@@ -22,16 +22,19 @@ public class Writer extends Thread {
 
     @Override
     public void run() {
-        while (!interrupted()) {
-            try {
+        try {
+            while (!interrupted()) {
+                    waitForOutput();
                 if (!protocolQueue.isEmpty()) {
                     send(protocolQueue.poll());
                 } else if (!messageQueue.isEmpty()) {
                     send(messageQueue.poll());
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 
@@ -49,5 +52,24 @@ public class Writer extends Thread {
         });
     }
 
+    private synchronized void waitForOutput() throws InterruptedException {
+        if (messageQueue.isEmpty() && protocolQueue.isEmpty()) {
+            wait();
+        }
+    }
 
+    public synchronized Boolean addMessage(Message message) {
+        if (messageQueue.contains(message)) {
+            return false;
+        }
+        messageQueue.add(message);
+        notifyAll();
+        return true;
+    }
+
+    public synchronized Boolean addCommand(String command) {
+        protocolQueue.add(command);
+        notifyAll();
+        return true;
+    }
 }
