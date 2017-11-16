@@ -10,6 +10,7 @@ import java.util.Queue;
 public class Channel extends Thread {
 
     private List<User> userList;
+    private List<User> newUserList;
     private int channelID;
     private String channelName;
     private Queue<Message> messageQueue;
@@ -35,5 +36,17 @@ public class Channel extends Thread {
         messageQueue.add(message);
         notifyAll();
         return true;
+    }
+
+    public synchronized void setUserList() {
+        this.userList = newUserList;
+    }
+
+    public synchronized void NewUserList() {
+        newUserList = new ArrayList<>();
+    }
+
+    public synchronized void addToNewUserList(User user){
+        newUserList.add(user);
     }
 }

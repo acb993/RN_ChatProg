@@ -1,9 +1,7 @@
 package client;
 
 
-import jdk.nashorn.api.tree.WhileLoopTree;
 import util.Message;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -24,7 +22,7 @@ public class User {
 
     public static void main(String[] args) throws InterruptedException, IOException {
         User user = new User("acb993");
-        user.createConnection("192.168.179.33",8080);
+        user.createConnection("localhost",8080);
         Boolean run = true;
 
         while(run) {
@@ -51,7 +49,6 @@ public class User {
 
             }else if(s.startsWith("send message")) {
                 s = s.replace("send message ", "");
-                user.startMessage(Integer.valueOf(s));
                 user.sendMessage(Integer.valueOf(s));
 
             }else if(s.startsWith("exit")) {
@@ -79,6 +76,7 @@ public class User {
     }
 
     private void getChannel() {
+        connection.newGetChannel();
         connection.sendCommand("GET CHANNEL");
     }
 
@@ -95,6 +93,7 @@ public class User {
     }
 
     private void getUser(int channelID) {
+        connection.newGetUser(channelID);
         connection.sendCommand("GET USER " + channelID);
     }
 
@@ -111,7 +110,7 @@ public class User {
             message.addLine(s);
         }
 
-        connection.sendMessage(message);
+        connection.sendMessage(message,channelID);
     }
 
     private void closeChannel() {

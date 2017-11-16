@@ -17,6 +17,8 @@ public class Client extends Thread {
     private User user;
     private List<Channel> enteredChannel;
     private HashMap<Integer, String> availableChannel;
+    private HashMap<Integer, String> newAvailableChannel;
+    private int zustand;
 
     public Client(String ip, int port, User user) {
         this.ip = ip;
@@ -24,6 +26,8 @@ public class Client extends Thread {
         this.user = user;
         this.enteredChannel = new ArrayList<>();
         this.availableChannel = new HashMap<>();
+        this.newAvailableChannel = new HashMap<>();
+        zustand=0;
     }
 
     @Override
@@ -48,11 +52,41 @@ public class Client extends Thread {
     public void disconnect() throws IOException {
         reader.interrupt();
         writer.interrupt();
+        try {
+            reader.join();
+            writer.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         socket.close();
     }
 
-    public void sendMessage(Message message) {
-        writer.addMessage(message);
+    public void sendMessage(Message message, int channelID) {
+        writer.addCommand("SEND MESSAGE " + channelID);
+        try {
+            waitForZustand(45);
+            if(zustand==60){
+                return;
+            }
+            writer.addMessage(message);
+        } catch (InterruptedException e) {
+            System.out.println("Message could not be send");
+            return;
+        }
+    }
+
+    private synchronized void waitForZustand(int zustand) throws InterruptedException {
+        while(this.zustand!=zustand&&this.zustand!=60){
+            wait();
+        }
+    }
+
+    public synchronized void setZustand(int zustand){
+        this.zustand = zustand;
+        notifyAll();
+    }
+    public int getZustand(){
+        return zustand;
     }
 
     public void sendCommand(String command) {
@@ -70,6 +104,7 @@ public class Client extends Thread {
     public void createChannel(String channelName, int channelID) {
         Channel channel = new Channel(channelID,channelName);
         enteredChannel.add(channel);
+        availableChannel.put(channelID, channelName);
     }
 
     public synchronized Boolean addMessageToChannel(Message message) {
@@ -85,7 +120,6 @@ public class Client extends Thread {
     public void getUser(List erg) {
 
     }
-
 
 
     public synchronized Boolean joinChannel(int channelID) {
@@ -109,5 +143,42 @@ public class Client extends Thread {
 
     public void serverMessage(String sMessage) {
         System.out.println(sMessage);
+    }
+
+    public synchronized void newGetChannel() {
+        newAvailableChannel.clear();
+    }
+
+    public synchronized void updateChannelList(List<String> channel){
+        String channelName = channel.get(0);
+        int channelID = Integer.valueOf(channel.get(1));
+        if(channel.get(0).startsWith("-")){
+            newAvailableChannel.put(channelID,channelName.substring(1,channelName.length()));
+        }else{
+            newAvailableChannel.put(channelID,channelName);
+            availableChannel=newAvailableChannel;
+        }
+    }
+
+    public synchronized void newGetUser(int channelID) {
+        Channel channel = enteredChannel.parallelStream().filter(channel1 -> channel1.getChannelID() == channelID).findFirst().get();
+        channel.NewUserList();
+    }
+
+
+    public synchronized void updateUserList(List<String> user){
+        String userName = user.get(0);
+        int channelID = Integer.valueOf(user.get(1));
+        Channel channel = enteredChannel.parallelStream().filter(channel1 -> channel1.getChannelID() == channelID).findFirst().get();
+        if(user.get(0).startsWith("-")){
+            channel.addToNewUserList(new User(userName));
+        }else{
+            channel.addToNewUserList(new User(userName));
+            channel.setUserList();
+        }
+    }
+
+    public String getChannelName(int channelId){
+        return availableChannel.get(channelId);
     }
 }

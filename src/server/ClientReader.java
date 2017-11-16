@@ -132,7 +132,7 @@ public class ClientReader extends Thread {
             int channel = server.createChannel(input);
             server.addUserToChannel(client,channel);
             zustand=44;
-            client.addCommandToQueue(String.format("%d CHANNEL CREATED %d %s", zustand, channel, input));
+            client.addCommandToQueue(String.format("%d CHANNEL CREATED %s %d", zustand, input, channel));
         }
         return zustand;
     }

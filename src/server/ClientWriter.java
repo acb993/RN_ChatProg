@@ -79,7 +79,7 @@ public class ClientWriter extends Thread {
     }
 
     private void pushMessage(Message message) throws IOException {
-        outFromServer.writeBytes(String.format("NEW MESSAGE %s %s %s \r\n", message.getChannelId(),message.getUsername(),message.getUserId()));
+        outFromServer.writeBytes(String.format("44 NEW MESSAGE %s %s %s \r\n", message.getChannelId(),message.getUsername(),message.getUserId()));
         message.getBody().stream().forEach(line -> {
             try {
                 outFromServer.writeBytes(line);
