@@ -72,6 +72,9 @@ public class Reader extends Thread {
     }
 
     private void serverList(String sMessage) {
+        if(sMessage.startsWith(" ")){
+            sMessage = sMessage.substring(1,sMessage.length());
+        }
         List<String> line = Arrays.asList(sMessage.split(" "));
         if(line.size()==3){
             client.updateChannelList(line);
@@ -87,7 +90,7 @@ public class Reader extends Thread {
         String message = input.readLine();
         while (message.compareTo("EOM")!=0){
             client.serverMessage(message);
-            input.readLine();
+            message = input.readLine();
         }
         client.serverMessage("");
     }

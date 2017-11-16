@@ -24,7 +24,7 @@ public class ClientReader extends Thread {
                 analyzeInput(readerFromClient.readLine());
             }
         } catch (IOException e) {
-            e.printStackTrace();
+                client.exit();
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             return;
@@ -32,14 +32,14 @@ public class ClientReader extends Thread {
     }
 
     private void analyzeInput(String input) throws IOException, InterruptedException {
-        client.pushing(false);
+        //client.pushing(false);
         System.out.println("NEW MESSAGE     " + input);
         int zustand = client.getZustand();
         if (input.startsWith("SEND MESSAGE") && (zustand == 44)) {
             zustand = sendMessageRequest(input, zustand);
         } else if (input.startsWith("GET CHANNEL") && ((zustand == 43) || (zustand == 44))) {
             zustand = getChannelRequest(input, zustand);
-        } else if (input.startsWith("GET USERS") && (zustand == 44)) {
+        } else if (input.startsWith("GET USER") && (zustand == 44)) {
             zustand = getUsersRequest(input, zustand);
         } else if (input.startsWith("JOIN") && ((zustand == 43) || (zustand == 44))) {
             zustand = joinRequest(input, zustand);
@@ -58,7 +58,7 @@ public class ClientReader extends Thread {
         } else {
             client.addCommandToQueue("60 COULD NOT FIND COMMAND");
         }
-        client.pushing(true);
+        //client.pushing(true);
         client.setZustand(zustand);
     }
 
@@ -84,8 +84,16 @@ public class ClientReader extends Thread {
     }
 
     private int getChannelRequest(String input, int zustand) {
-        server.getAllChannel().stream().forEach(channel -> client.addCommandToQueue(String.format("%d %s %d %d ", zustand, channel.getChannelName(), channel.getChannelID(), channel.getUserCount())));
-
+        List<Channel> channelListe = server.getAllChannel();
+        if(channelListe.size()>0) {
+            Channel channel = null;
+            for (int i = 0; i < channelListe.size() - 1; i++) {
+                channel = channelListe.get(i);
+                client.addCommandToQueue(String.format("%d-%s %d %d ", zustand, channel.getChannelName(), channel.getChannelID(), channel.getUserCount()));
+            }
+            channel = channelListe.get(channelListe.size() - 1);
+            client.addCommandToQueue(String.format("%d %s %d %d ", zustand, channel.getChannelName(), channel.getChannelID(), channel.getUserCount()));
+        }
         return zustand;
     }
 

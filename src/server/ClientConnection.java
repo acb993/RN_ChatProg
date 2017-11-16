@@ -68,7 +68,6 @@ public class ClientConnection extends Thread {
     }
 
     public synchronized void exit() {
-        writer.addCommandToQueue("42 Okay connection will be closed");
         server.exitUser(this);
         writer.interrupt();
         reader.interrupt();

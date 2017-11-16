@@ -37,7 +37,6 @@ public class ClientWriter extends Thread {
         } catch (IOException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
-        System.out.println("ClientWriter ist Interrupted");
             try {
                 outFromServer.flush();
             } catch (IOException e1) {
