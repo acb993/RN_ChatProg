@@ -7,7 +7,7 @@ import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 
-public class Controller {
+public class Controller{
 
     @FXML
     private ResourceBundle resources;
