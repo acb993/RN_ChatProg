@@ -51,24 +51,28 @@ public class Client extends Thread {
         socket.close();
     }
 
-    public Boolean sendMessage(Message message) {
-        return writer.addMessage(message);
+    public void sendMessage(Message message) {
+        writer.addMessage(message);
     }
 
-    public Boolean sendCommand(String command) {
-        return writer.addCommand(command);
+    public void sendCommand(String command) {
+        writer.addCommand(command);
     }
 
-    public synchronized Boolean addMessageToChannel(String sMessage) throws IOException {
-        ArrayList<String> channelParts = new ArrayList<>(Arrays.asList(sMessage.split(" ")));
-        Message message = new Message(Integer.valueOf(channelParts.get(0)), channelParts.get(1), Integer.valueOf(channelParts.get(2)));
-        String row = "";
-        while (!row.equals("EOM")) {
-            if (reader.getInput().available() > 0) {
-                row = reader.getInput().readLine();
-                message.addLine(row);
-            }
-        }
+    public void setID(int id) {
+        user.setID(id);
+    }
+
+    public synchronized HashMap getChannel(HashMap map) {
+        return availableChannel = map;
+    }
+
+    public void createChannel(String channelName, int channelID) {
+        Channel channel = new Channel(channelID,channelName);
+        enteredChannel.add(channel);
+    }
+
+    public synchronized Boolean addMessageToChannel(Message message) {
         for (Channel channel : enteredChannel) {
             if (channel.getChannelID() == message.getChannelId()) {
                 return channel.addMessageToQueue(message);
@@ -78,16 +82,11 @@ public class Client extends Thread {
         return false;
     }
 
-    public void getUser(String sMessage) {
+    public void getUser(List erg) {
+
     }
 
-    public synchronized String getChannel(String sMessage) {
-        ArrayList<String> channelParts = new ArrayList<>(Arrays.asList(sMessage.split(" ")));
-        return availableChannel.put(Integer.valueOf(channelParts.get(1)), channelParts.get(0));
-    }
 
-    public void createChannel(String sMessage) {
-    }
 
     public synchronized Boolean joinChannel(int channelID) {
         for (Map.Entry<Integer, String> entry : availableChannel.entrySet()) {
@@ -108,17 +107,7 @@ public class Client extends Thread {
         return false;
     }
 
-
-    public void setID(int id) {
-        user.setID(id);
-    }
-
-    private void waitForAnswer() {
-
-    }
-
     public void serverMessage(String sMessage) {
         System.out.println(sMessage);
     }
-
 }

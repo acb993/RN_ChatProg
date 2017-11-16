@@ -1,8 +1,13 @@
 package client;
 
+import util.Message;
+
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Socket;
+import java.util.*;
 
 public class Reader extends Thread {
 
@@ -46,9 +51,10 @@ public class Reader extends Thread {
         }
     }
 
-    private void analyze(String sMessage) {
+    private void analyze(String sMessage) throws IOException {
+        client.serverMessage(sMessage);
         if (sMessage.startsWith(NOT_LOGGED_IN_STATE)) {
-            notLoggedIn(sMessage.replace(NOT_LOGGED_IN_STATE, EMPTY_STRING_REPLACEMENT));
+            //    notLoggedIn(sMessage.replace(NOT_LOGGED_IN_STATE, EMPTY_STRING_REPLACEMENT));
 
         } else if (sMessage.startsWith(NOT_IN_ROOM_STATE)) {
             notInRoom(sMessage.replace(NOT_IN_ROOM_STATE, EMPTY_STRING_REPLACEMENT));
@@ -59,45 +65,35 @@ public class Reader extends Thread {
         } else if (sMessage.startsWith(MESSAGE_MODE_STATE)) {
             messageMode(sMessage.replace(MESSAGE_MODE_STATE, EMPTY_STRING_REPLACEMENT));
 
-        } else if (sMessage.startsWith(ERROR_MODE_STATE)) {
-            errorMode(sMessage.replace(ERROR_MODE_STATE, EMPTY_STRING_REPLACEMENT));
+            // } else if (sMessage.startsWith(ERROR_MODE_STATE)) {
+            //     errorMode(sMessage.replace(ERROR_MODE_STATE, EMPTY_STRING_REPLACEMENT));
         }
     }
 
-    private void notLoggedIn(String sMessage) {
-        client.serverMessage(sMessage);
-    }
+    //private synchronized void notLoggedIn(String sMessage) {
+    //    client.serverMessage(sMessage);
+    //}
 
-    private void notInRoom(String sMessage) {
+    private synchronized void notInRoom(String sMessage) throws IOException {
         if (sMessage.startsWith(GET_ID_ANSWER_PART)) {
             sMessage = sMessage.replace(GET_ID_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
             client.setID(Integer.valueOf(sMessage));
 
         } else if (sMessage.startsWith(GET_CHANNEL_ANSWER_PART)) {
-            sMessage = sMessage.replace(GET_CHANNEL_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
-            client.getChannel(sMessage);
+            multiChannel(sMessage);
 
         } else if (sMessage.startsWith(GET_CHANNEL_ANSWER_PART_EMPTY)) {
-            client.getChannel(sMessage);
+            singleChannel(sMessage);
 
         } else if (sMessage.startsWith(LEAVE_CHANNEL_ANSWER_PART)) {
             sMessage = sMessage.replace(LEAVE_CHANNEL_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
             client.removeChannel(Integer.valueOf(sMessage));
 
-        } else {
-            client.serverMessage(sMessage);
         }
     }
 
-    private void inRoom(String sMessage) {
-        if (sMessage.startsWith(GET_CHANNEL_ANSWER_PART)) {
-            sMessage = sMessage.replace(GET_CHANNEL_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
-            client.getChannel(sMessage);
-
-        } else if (sMessage.startsWith(GET_CHANNEL_ANSWER_PART_EMPTY)) {
-            client.getChannel(sMessage);
-
-        } else if (sMessage.startsWith(JOIN_ANSWER_PART)) {
+    private synchronized void inRoom(String sMessage) throws IOException {
+        if (sMessage.startsWith(JOIN_ANSWER_PART)) {
             sMessage = sMessage.replace(JOIN_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
             client.joinChannel(Integer.valueOf(sMessage));
 
@@ -106,36 +102,95 @@ public class Reader extends Thread {
             client.removeChannel(Integer.valueOf(sMessage));
 
         } else if (sMessage.startsWith(GET_USER_ANSWER_PART)) {
-            sMessage = sMessage.replace(GET_USER_ANSWER_PART,EMPTY_STRING_REPLACEMENT);
-            client.getUser(sMessage);
+            List<String> erg = new ArrayList<>();
+            List<String> ary = new ArrayList<>();
+
+            sMessage = sMessage.replace(GET_USER_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
+            ary.add(Arrays.toString(sMessage.split(" ")));
+            erg.add(ary.get(0));
+
+            while (!sMessage.startsWith(GET_USER_ANSWER_PART_EMPTY)) {
+                if (input.available() > 0) {
+                    ary.clear();
+                    sMessage = input.readLine();
+
+                    sMessage = sMessage.replace(GET_USER_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
+                    ary.add(Arrays.toString(sMessage.split(" ")));
+                    erg.add(ary.get(0));
+                }
+            }
+            client.getUser(erg);
 
         } else if (sMessage.startsWith(GET_USER_ANSWER_PART_EMPTY)) {
-            client.getUser(sMessage);
+            List<String> erg = new ArrayList<>();
+            List<String> ary = new ArrayList<>();
+
+            ary.add(Arrays.toString(sMessage.split(" ")));
+            erg.add(ary.get(0));
+            client.getUser(erg);
 
         } else if (sMessage.startsWith(CREATE_CHANNEL_ANSWER_PART)) {
-            sMessage = sMessage.replace(CREATE_CHANNEL_ANSWER_PART,EMPTY_STRING_REPLACEMENT);
-            client.createChannel(sMessage);
+            sMessage = sMessage.replace(CREATE_CHANNEL_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
+            ArrayList<String> ary = new ArrayList<>(Arrays.asList(sMessage.split(" ")));
+            client.createChannel(ary.get(0), Integer.valueOf(ary.get(1)));
 
         } else if (sMessage.startsWith(NEW_MESSAGE_ANSWER_PART)) {
-            sMessage = sMessage.replace(NEW_MESSAGE_ANSWER_PART,EMPTY_STRING_REPLACEMENT);
-            client.addMessageToChannel(sMessage);
+            sMessage = sMessage.replace(NEW_MESSAGE_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
+            ArrayList<String> channelParts = new ArrayList<>(Arrays.asList(sMessage.split(" ")));
+            Message message = new Message(Integer.valueOf(channelParts.get(0)), channelParts.get(1), Integer.valueOf(channelParts.get(2)));
+            String row = "";
+            while (!row.equals("EOM")) {
+                if (input.available() > 0) {
+                    row = input.readLine();
+                    message.addLine(row);
+                }
+            }
+            client.addMessageToChannel(message);
 
-        }else {
-            client.serverMessage(sMessage);
+        } else if (sMessage.startsWith(GET_CHANNEL_ANSWER_PART)) {
+            multiChannel(sMessage);
+
+        } else if (sMessage.startsWith(GET_CHANNEL_ANSWER_PART_EMPTY)) {
+            singleChannel(sMessage);
+
         }
     }
 
-    private void messageMode(String sMessage) {
+    private synchronized void messageMode(String sMessage) throws IOException {
         if (sMessage.startsWith(SEND_MESSAGE_ANSWER_PART)) {
-            client.serverMessage(sMessage);
+
         }
     }
 
-    private void errorMode(String sMessage) {
+    //private synchronized void errorMode(String sMessage) {
+    //    client.serverMessage(sMessage);
+    //}
 
+    private synchronized void singleChannel(String sMessage) {
+        HashMap<Integer, String> map = new HashMap<>();
+        List<String> ary = new ArrayList<>();
+
+        Collections.addAll(ary, sMessage.split(" "));
+        map.put(Integer.valueOf(ary.get(2)), ary.get(1));
+        client.getChannel(map);
     }
 
-    public DataInputStream getInput() {
-        return input;
+    private synchronized void multiChannel(String sMessage) throws IOException {
+        HashMap<Integer, String> map = new HashMap<>();
+        List<String> ary = new ArrayList<>();
+
+        sMessage = sMessage.replace(GET_CHANNEL_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
+        Collections.addAll(ary, sMessage.split(" "));
+        map.put(Integer.valueOf(ary.get(1)), ary.get(0));
+
+        while (!sMessage.startsWith(GET_CHANNEL_ANSWER_PART_EMPTY)) {
+            if (input.available() > 0) {
+                ary.clear();
+                sMessage = input.readLine();
+
+                sMessage = sMessage.replace(GET_CHANNEL_ANSWER_PART, EMPTY_STRING_REPLACEMENT);
+            }
+        }
+        client.getChannel(map);
     }
 }
