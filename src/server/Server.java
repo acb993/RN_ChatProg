@@ -80,17 +80,18 @@ public class Server extends Thread {
         }
     }
 
-    public synchronized int createChannel(String channelName, ClientConnection user){
+    public synchronized int createChannel(String channelName){
         Channel kanal = new Channel(getNewChannelId(),channelName);
         channel.add(kanal);
         kanal.start();
-        kanal.addUser(user);
         return kanal.getChannelID();
     }
 
-    public synchronized void closeChannel(int id){
+    public synchronized void closeChannel(int id) throws InterruptedException {
         if(checkIfChannelExists(id)){
         Channel kanal = channel.parallelStream().filter(channel1 -> channel1.getChannelID()==id).findFirst().get();
+        kanal.interrupt();
+        kanal.join();
         channel.remove(kanal);}
     }
 
@@ -149,7 +150,7 @@ public class Server extends Thread {
         if(userList.isEmpty()){
             return 1;
         }else{
-            return userList.parallelStream().max(Comparator.comparingInt(ClientConnection::getid)).get().getid()+1;
+            return userList.parallelStream().max(Comparator.comparingInt(ClientConnection::getClientId)).get().getClientId()+1;
         }
     }
     private int getNewChannelId(){
@@ -173,4 +174,10 @@ public class Server extends Thread {
         removeUserFromAllChannel(clientConnection);
         userList.remove(clientConnection);
     }
+
+    public boolean clientIsInAnyChannel(ClientConnection client){
+        return channel.parallelStream().anyMatch(channel1 -> channel1.hasUser(client.getClientId()));
+    }
+
+
 }

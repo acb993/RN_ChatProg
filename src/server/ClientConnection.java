@@ -15,7 +15,6 @@ import java.net.SocketAddress;
 public class ClientConnection extends Thread {
 
     private int zustand;
-    private ServerSocket serverSocket;
     private Socket socket;
     private Server server;
     private int id;
@@ -26,7 +25,6 @@ public class ClientConnection extends Thread {
 
     public ClientConnection(int id, ServerSocket serverSocket, Server server) throws IOException {
         this.id = id;
-        this.serverSocket = serverSocket;
         this.server = server;
         socket = serverSocket.accept();
         reader = new ClientReader(new DataInputStream((socket.getInputStream())), this,server);
@@ -53,10 +51,6 @@ public class ClientConnection extends Thread {
     }
 
 
-    public int getid() {
-        return id;
-    }
-
     public boolean addMessageToQueue(Message message) {
         return writer.addMessageToQueue(message);
     }
@@ -65,20 +59,17 @@ public class ClientConnection extends Thread {
         return writer.addCommandToQueue(message);
     }
 
-
     public boolean hasConnection() {
         return socket != null;
-    }
-
-    public boolean addUserToChannel(int channelID) {
-        return server.addUserToChannel(this, channelID);
     }
 
     public synchronized void setZustand(int zustand) {
         this.zustand = zustand;
     }
+
     public synchronized void exit() {
         writer.addCommandToQueue("42 Okay connection will be closed");
+        server.exitUser(this);
         writer.interrupt();
         reader.interrupt();
     }
@@ -99,10 +90,8 @@ public class ClientConnection extends Thread {
         return id;
     }
 
-    public void noPushing(){
-        writer.noPushing();
-    }
-    public void pushing(){
-        writer.pushing();
+
+    public void pushing(Boolean allowed){
+        writer.pushing(allowed);
     }
 }
