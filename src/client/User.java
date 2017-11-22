@@ -58,12 +58,12 @@ public class User {
         }
     }
 
-    private void createConnection(String ip, int port) {
+    public void createConnection(String ip, int port) {
         connection = new Client(ip, port, this);
         connection.start();
     }
 
-    private void closeConnection() throws IOException {
+    public void closeConnection() throws IOException {
         connection.disconnect();
     }
 
@@ -71,24 +71,24 @@ public class User {
         return this.id = id;
     }
 
-    private void getID() {
+    public void getID() {
         connection.sendCommand("GET ID " + username);
     }
 
-    private void getChannel() {
+    public void getChannel() {
         connection.newGetChannel();
         connection.sendCommand("GET CHANNEL");
     }
 
-    private void joinChannel(int channelID) {
+    public void joinChannel(int channelID) {
         connection.sendCommand("JOIN " + channelID);
     }
 
-    private void createChannel(String channelName) {
+    public void createChannel(String channelName) {
         connection.sendCommand("CREATE CHANNEL " + channelName);
     }
 
-    private void leaveChannel(int channelID) {
+    public void leaveChannel(int channelID) {
         connection.sendCommand("LEAVE CHANNEL " + channelID);
     }
 
@@ -97,11 +97,8 @@ public class User {
         connection.sendCommand("GET USER " + channelID);
     }
 
-    private void startMessage(int channelID) {
-        connection.sendCommand("SEND MESSAGE " + channelID);
-    }
 
-    private void sendMessage(int channelID) throws IOException {
+    public void sendMessage(int channelID) throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         Message message = new Message(id,username,channelID);
         String s = "";
@@ -113,6 +110,14 @@ public class User {
         connection.sendMessage(message,channelID);
     }
 
-    private void closeChannel() {
+    public void sendMessage(int channelID,Message message) throws IOException {
+        connection.sendMessage(message,channelID);
+    }
+
+    public void closeChannel() {
+    }
+
+    public Client getClient(){
+        return connection;
     }
 }

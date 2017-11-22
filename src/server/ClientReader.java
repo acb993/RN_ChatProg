@@ -32,7 +32,7 @@ public class ClientReader extends Thread {
     }
 
     private void analyzeInput(String input) throws IOException, InterruptedException {
-        //client.pushing(false);
+        client.pushing(false);
         System.out.println("NEW MESSAGE     " + input);
         int zustand = client.getZustand();
         if (input.startsWith("SEND MESSAGE") && (zustand == 44)) {
@@ -58,7 +58,7 @@ public class ClientReader extends Thread {
         } else {
             client.addCommandToQueue("60 COULD NOT FIND COMMAND");
         }
-        //client.pushing(true);
+        client.pushing(true);
         client.setZustand(zustand);
     }
 
@@ -122,9 +122,9 @@ public class ClientReader extends Thread {
             int channelId = Integer.valueOf(input);
             if (server.addUserToChannel(client,channelId)) {
                 zustand = 44;
-                client.addCommandToQueue(String.format("%d OK,USER JOINED CHANNEL %d", zustand, channelId));
+                client.addCommandToQueue(String.format("%d OK USER JOINED CHANNEL %d", zustand, channelId));
             } else {
-                client.addCommandToQueue(String.format("%d NO CHANNEL FOUND WITH ID %s", zustand, input));
+                client.addCommandToQueue(String.format("60 NO CHANNEL FOUND WITH ID %s", zustand, input));
             }
         } catch (NumberFormatException e) {
             client.addCommandToQueue("60 COMMAND COULD NOT BE EXECUTED, CHANNEL ID MAY BE INCORRECT");
