@@ -21,15 +21,19 @@ public class ClientWriter extends Thread {
         this.outFromServer = outFromServer;
     }
 
+
     @Override
     public void run() {
+        String zeile;
         try {
             while (!interrupted()) {
 
                     waitfornewmessage();
 
                 if (!outGoingCommand.isEmpty()) {
-                    outFromServer.writeBytes(outGoingCommand.poll() + "\r\n");
+                    zeile = outGoingCommand.poll() + "\r\n";
+                    System.out.println(zeile);
+                    outFromServer.writeBytes(zeile);
                 } else if (!outGoingMessage.isEmpty()&&pushing) {
                     pushMessage(outGoingMessage.poll());
                 }

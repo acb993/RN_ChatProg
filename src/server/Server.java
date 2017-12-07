@@ -1,10 +1,9 @@
 package server;
 
-import client.Client;
+
 import util.Message;
 
 import javax.net.ServerSocketFactory;
-import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.ServerSocket;
